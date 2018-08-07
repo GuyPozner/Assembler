@@ -25,7 +25,7 @@ typedef struct symbolTable{
 symbol * new_symbol(char *, unsigned int, unsigned int, unsigned int);
 
 
-void add_symbol(symbolTable *, char *, unsigned int,unsigned int, unsigned int);
+int add_symbol(symbolTable *, char *, unsigned int, unsigned int, unsigned int);
 
 symbolTable * new_symbol_table();
 

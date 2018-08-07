@@ -31,38 +31,56 @@ symbol * new_symbol(char *name, unsigned int adress,
 
 	symbol *new = (symbol *)malloc(sizeof(symbol));
 	new->name = (char *)malloc(sizeof(char) * MAX_LABEL);
+	
 
 	new->next = NULL;
 	strcpy(new->name, name);
+
 	new->adress = adress;
 	new->is_external = is_external;
 	new->is_operation = is_operation;
-
+	
 	return new;
 
 }
 
-/* Adds a symbol to table */
-void add_symbol(symbolTable *symbol_table, char *name, unsigned int adress,
+/* Adds a symbol to table, returns  */
+int add_symbol(symbolTable *symbol_table, char *name, unsigned int adress,
 				unsigned int is_external, unsigned int is_operation){
 
-	symbol *new, *tmp;
+	symbol *new, *last;
+
 
 	/* Find the last line in the table */
-	tmp = symbol_table->head;
-	while(tmp != NULL)
-		tmp = tmp->next;
+	last = symbol_table->head;
+	if(last == NULL){
+		new = new_symbol(name, adress, is_external, is_operation);
+		symbol_table->head = new;
+		return 1;
+	}
 
+	if(strcmp(last->name, name) == 0){
+			return 0;
+	}
+
+	while(last->next != NULL){
+		last = last->next;
+		if(strcmp(last->name, name) == 0)
+			return 0;
+	}
+	
 	/* Concatante the symbol at the end of the table */
 	new = new_symbol(name, adress, is_external, is_operation);
-	tmp->next = new;
+	last->next = new;
 
+	return 1;
 }
 
 symbolTable * new_symbol_table(){
 	
 	symbolTable *new;
 	
+	new = (symbolTable *)malloc(sizeof(symbolTable));
 	new->head = NULL;
 	
 	return new;
@@ -89,7 +107,7 @@ unsigned int get_symbol_adress(symbolTable *symbol_table, char *name){
 			return tmp->adress;
 	}
 
-	return 0;
+	return -1;
 }
 
 unsigned int is_symbol_operation(symbolTable *symbol_table, char *name){
@@ -110,6 +128,6 @@ unsigned int is_symbol_external(symbolTable *symbol_table, char *name){
 		if(strcmp(tmp->name, name) == 0)
 			return tmp->is_external;
 	}
-	return 2;
+	return -1;
 }
 

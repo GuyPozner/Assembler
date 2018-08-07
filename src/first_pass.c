@@ -1,53 +1,147 @@
 #include <stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <stdlib.h>
+#include <string.h>
 #include "utils.h"
 #include "symbol_table.h"
 
-int main(){
 
-	int i, line_ind, error_count;
+int * first_pass(char *filepath, symbolTable *symbol_table){
+
+	int *ret_arr;
 	int IC = 0;
 	int DC = 0;
+	int line_ind, error_count;
+	int has_symbol_def = 0;
 	char *line;
 	char **parsed_line;
 	FILE *source;
+	unsigned int op_code;
 
-	line = (char *)malloc(sizeof(char) * MAX_LINE);
 	
+	error_count = 0;
+	if((source = fopen(filepath, "r")) == NULL){
 
-	if((source = fopen("input.as", "r")) == NULL){
-		fprintf(stderr, "%s: error: file corrupted or not found.\n", "input.as");
-		exit(1);
+		error_count++;
+		fprintf(stderr, "%s: error: file corrupted or not found.\n", filepath);
+
 	}
 
-	error_count = 0;
+	
 	line_ind = 0;
-
+	line = (char *)malloc(sizeof(char) * MAX_LINE);
 	while(fgets(line, sizeof(char) * MAX_LINE, source)){
-		
+
 		line_ind++;
+		has_symbol_def = 0;
 		parsed_line = parse_line(line);
+
+		/* If line is empty or a comment, go to next line */
+		if(*parsed_line[0] == '*' &&
+			*parsed_line[1] == '*' &&
+			*parsed_line[2] == '*')
+			continue;
 
 		/* Check if line contains ilegal label*/
 		if(*parsed_line[0] == '#'){
 			error_count++;
-			fprintf(stderr, "%s:%d: error: ilegal label definition.\n", "input.as", line_ind);
-			continue;
-		}
-
-		/* Check if line contains too many arguments */
-		if(*parsed_line[3] == '1'){
-			error_count++;
-			fprintf(stderr, "%s:%d: error: too many arguments.\n", "input.as", line_ind);
+			fprintf(stderr, "%s:%d: error: ilegal label definition.\n", filepath, line_ind);
 			continue;
 		}
 
 
-		for(i = 0; i < 4; i++)
-			printf("%s\n", parsed_line[i]);
+		if(is_legal_label(parsed_line[0]))
+			has_symbol_def = 1;
+
+		if(is_data_storage_instruction(parsed_line[1])){
+			
+			/* Update the symbol table if necessery */
+			if(has_symbol_def){
+				if(!add_symbol(symbol_table, parsed_line[0], DC, 0, 0)){
+					fprintf(stderr, "%s:%d: error: label already exists.\n", filepath, line_ind);
+					error_count++;
+				}
+			}
+			
+			/* Update DC according to data */
+			if(is_instruction(parsed_line[1]) == DATA){
+				if(compute_memory_for_data(parsed_line[2]))
+					DC += compute_memory_for_data(parsed_line[2]);
+				else {
+					error_count++;
+					fprintf(stderr, "%s:%d: error: ilegal data arguments.\n", filepath, line_ind);
+				}
+			/* Update DC according to string */
+			} else {
+
+				if(compute_memory_for_string(parsed_line[2]))
+					DC += compute_memory_for_string(parsed_line[2]);
+				else {
+
+					error_count++;
+					fprintf(stderr, "%s:%d: error: ilegal string arguments.\n", filepath, line_ind);
+				}
+			}
+			continue;
+		}
+		
+		if(is_data_definition_instruction(parsed_line[1])){
+			if(is_instruction(parsed_line[1]) == EXTERN){
+				if(is_legal_label(parsed_line[2]))
+					if(!add_symbol(symbol_table, parsed_line[2], IC, 1, 0)){
+						error_count++;
+						fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
+					}
+			}
+			continue;
+		}
+
+
+		if(is_operation(parsed_line[1])){
+			op_code = is_operation(parsed_line[1]);
+			if(has_symbol_def){
+				if(add_symbol(symbol_table, parsed_line[0], IC, 0, 1) == 0){
+					error_count++;
+					fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
+				}
+			}
+
+			/* Compute the number of memory words */
+			if((op_code == STOP ||
+				op_code == RTS) &&
+				(*(parsed_line[2]) == '#')){
+				
+				IC++;
+
+			} else if (is_legal_addressing_modes(parsed_line[1], parsed_line[2])){
+				
+				IC += compute_memory_for_code(parsed_line[2]);
+
+			} else {
+				
+				printf("%s:%d error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
+				error_count++;
+
+			}
+
+
+		} else {
+
+			fprintf(stderr, "%s:%d: error: unknown operation.\n", "inpus.as", line_ind);
+
+		}
+		
+		
 	}
 
+	
+
+	ret_arr = (int *)malloc(sizeof(int) * 3);
+
+	ret_arr[0] = error_count;
+	ret_arr[1] = IC;
+	ret_arr[2] = DC;
+
 	fclose(source);
-	return 0;
+
+	return ret_arr;
 }
