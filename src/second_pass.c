@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
 #include "symbol_table.h"
+#include "utils.h"
 #include "first_pass.h"
 
 int main(){
@@ -20,7 +20,8 @@ int main(){
 	int *first_pass_output_arr;
 	char **code_arr;
 	char **data_arr;
-
+	int i;
+	
 
 	if((source = fopen(filepath, "r")) == NULL){
 
@@ -29,9 +30,11 @@ int main(){
 
 	}
 
+
 	/* First pass */
 	first_pass_output_arr = first_pass(filepath, symbol_table);
-	
+	print_symbol_table(symbol_table);
+
 	error_count += first_pass_output_arr[0];
 	IC = first_pass_output_arr[1];
 	DC = first_pass_output_arr[2];
@@ -48,6 +51,7 @@ int main(){
 		return	error_count;
 	}
 
+
 	/* Allocate memory for code and data arrays */
 	code_arr = (char **)malloc(sizeof(char) * IC);
 	data_arr = (char **)malloc(sizeof(char) * DC);
@@ -56,6 +60,8 @@ int main(){
 	DC_ind = 0;
 	line_ind = 0;
 	line = (char *)malloc(sizeof(char) * MAX_LINE);
+
+
 	while(fgets(line, sizeof(char) * MAX_LINE, source)){
 
 		line_ind++;
@@ -72,17 +78,22 @@ int main(){
 
 		if(is_operation(parsed_line[1])){
 
-			operation_to_code_words(code_arr, parsed_line[1], parsed_line[2], IC_ind);
+			operation_to_code_words(symbol_table, code_arr, parsed_line[1], parsed_line[2], IC_ind);
+			printf("line_ind: %d, code: %d\n", line_ind, compute_memory_for_code(parsed_line[2]));
+			for(i = IC_ind;i < (IC_ind + compute_memory_for_code(parsed_line[2])); i++)
+				printf("code word: %s\n", code_arr[i]);
 			IC_ind += compute_memory_for_code(parsed_line[2]);
 
-		} else {
 
+		} else {
+			
 		}
 
 
 
-	}
 
+	}
+	/*print_code_arr(code_arr, IC);*/
 	free(first_pass_output_arr);
 	fclose(source);
 

@@ -1,27 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
-
-
-/* A type for representing the symbol table*/
-typedef struct symbol{
-
-	char *name;
-	unsigned int adress;
-	unsigned int is_external:1;
-	unsigned int is_operation:1;
-	struct symbol *next;
-
-}symbol;
-
-
-
-typedef struct symbolTable{
-
-	struct symbol *head;
-
-}symbolTable;
+#include "symbol_table.h"
 
 
 /* Constructs a new symbol*/
@@ -105,6 +85,7 @@ unsigned int get_symbol_adress(symbolTable *symbol_table, char *name){
 	while(tmp != NULL){
 		if(strcmp(tmp->name, name) == 0)
 			return tmp->adress;
+		tmp = tmp->next;
 	}
 
 	return -1;
@@ -116,9 +97,10 @@ unsigned int is_symbol_operation(symbolTable *symbol_table, char *name){
 	while(tmp != NULL){
 		if(strcmp(tmp->name, name) == 0)
 			return tmp->is_operation;
+		tmp = tmp->next;
 	}
 	
-	return 2;
+	return -1;
 }
 
 unsigned int is_symbol_external(symbolTable *symbol_table, char *name){
@@ -127,7 +109,16 @@ unsigned int is_symbol_external(symbolTable *symbol_table, char *name){
 	while(tmp != NULL){
 		if(strcmp(tmp->name, name) == 0)
 			return tmp->is_external;
+		tmp = tmp->next;
 	}
 	return -1;
 }
 
+void print_symbol_table(symbolTable *symbol_table){
+
+	symbol *tmp = symbol_table->head;
+	while(tmp != NULL){
+		printf("name: %s, adress: %d\n", tmp->name, tmp->adress);
+		tmp = tmp->next;
+	}
+}

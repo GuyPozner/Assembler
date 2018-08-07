@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
 #include "symbol_table.h"
+#include "utils.h"
+
 
 
 int * first_pass(char *filepath, symbolTable *symbol_table){
@@ -87,7 +88,7 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 		if(is_data_definition_instruction(parsed_line[1])){
 			if(is_instruction(parsed_line[1]) == EXTERN){
 				if(is_legal_label(parsed_line[2]))
-					if(!add_symbol(symbol_table, parsed_line[2], IC, 1, 0)){
+					if(!add_symbol(symbol_table, parsed_line[2], DC, 1, 0)){
 						error_count++;
 						fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
 					}

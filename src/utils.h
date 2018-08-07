@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+
 #ifndef MAX_REG
 #define MAX_REG 8
 #endif
@@ -104,6 +105,8 @@ int compute_memory_for_string(char *);
 
 int compute_memory_for_code(char *);
 
-int operation_to_code_words(char **, char *, char *, int);
+int operation_to_code_words(symbolTable *, char **, char *, char *, int);
+
+void print_code_arr(char **, int);
 
 #endif

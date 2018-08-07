@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils.h"
 #include "symbol_table.h"
+#include "utils.h"
 
 
 
@@ -153,9 +153,9 @@ int is_register(char *word){
 	if(word[0] == 'r' &&
 		('0' <= word[1]) && (word[1] <= '7') &&
 		(strlen(word) == 2))
-		return 1 + (word[1] - '0');
+		return (word[1] - '0');
 	
-	return 0;
+	return -1;
 }
 
 /* Parses the line into an array where the first index
@@ -348,8 +348,9 @@ char * substr(char *str, int start, int end){
 	char *sub_str;
 	sub_str = (char *)malloc(sizeof(char) * ((end - start) + 1));
 	
+
 	memcpy(sub_str, str + start, end - start);
-	sub_str[(end - start) + 1] = '\0';
+	sub_str[(end - start)] = '\0';
 	
 	return sub_str;
 
@@ -457,6 +458,8 @@ int * params_to_addressing_modes(char *params){
 	char *tmp_params = (char *)malloc(sizeof(char) * (strlen(params) + 1));
 	
 	strcpy(tmp_params, params);
+
+	/* If two params */
 	if(contains_char(params, ',') && (!(contains_char(params, '(')))){
 		if((lhs_param = strtok(tmp_params, " ,\t")) != NULL &&
 			(rhs_param = strtok(NULL, " ,\t")) != NULL){
@@ -479,9 +482,10 @@ int * params_to_addressing_modes(char *params){
 }
 
 int * get_addressing_modes_from_jmp_params(char *params){
-
-	return params_to_addressing_modes(substr(params,
-			first_left_bracket_ind(params) + 1, strlen(params) - 1));
+	char *jmp_params = substr(params,
+			first_left_bracket_ind(params) + 1, (strlen(params) - 1));
+	
+	return params_to_addressing_modes(jmp_params);
 }
 
 int is_legal_addressing_modes(char *operation, char *params){
@@ -681,6 +685,7 @@ char * label_to_code_word(symbolTable *symbol_table, char *label){
 	int adress;
 	int is_external;
 
+
 	if((adress = get_symbol_adress(symbol_table, label)) == -1)
 		return NULL;
 
@@ -725,15 +730,20 @@ char * constant_to_code_word(int cnst){
 
 char **parse_params(char *params){
 
-	char *tmp_params = (char *)malloc(sizeof(char) * strlen(params));
+	char *tmp_params = (char *)malloc(sizeof(char) * (strlen(params) + 1));
 	char **params_arr = (char **)malloc(sizeof(char *) * 2);
 	char *tmp;
+	
+	params_arr[0] = (char *)malloc(sizeof(char) * (strlen(params) + 1));
+	params_arr[1] = (char *)malloc(sizeof(char) * (strlen(params) + 1));
+
 
 	strcpy(tmp_params, params);
 	tmp = strtok(tmp_params, " ,\t");
 	strcpy(params_arr[0], tmp);
-	if((tmp = strtok(NULL, " ,\t")) != NULL)
+	if((tmp = strtok(NULL, " ,\t")) != NULL){
 		strcpy(params_arr[1], tmp);
+	}
 	else{
 
 		strcpy(params_arr[1], params_arr[0]);
@@ -758,16 +768,21 @@ int param_to_code_word(symbolTable *symbol_table, char **code_arr,
 	
 	char *code_word;
 
+	printf("is_reg: %d\n", is_register(param));
 	if(0 <= is_register(param) && is_register(param) <= 7){
 		code_arr[IC_ind] = registers_to_code_word(0, is_register(param));
 		return 1;
+	}
 	
-	} else if(is_legal_constant(param)){
+	if(is_legal_constant(param)){
+		
+
 		code_arr[IC_ind] = constant_to_code_word(constant_str_to_int(param));
 		return 1;
 
 	/* Param is label */
 	} else {
+
 		code_word = label_to_code_word(symbol_table, param);
 		if(code_word == NULL)
 			return 0;
@@ -810,6 +825,7 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 	code_arr[IC_ind] = operation_to_code_word(param1, param2, op_code, 0, JMP_PARAMS);
 	code_arr[IC_ind + 1] = label_to_code_word(symbol_table, label);
 	
+
 	/* If label wasn't found in symbol table */
 	if((code_arr[IC_ind + 1]) == NULL)
 		return 0;
@@ -831,28 +847,68 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 }
 
 
-/*
+
 int operation_to_code_words(symbolTable *symbol_table, char **code_arr,char *operation,
  							char *params, int IC_ind){
 
-	int memory_size = compute_memory_for_code(params);
-	int op_code = is_operation(operation) - 1;
+
+
+	int label_found;
 	int *addressing_modes;
-	int *jmp_addressing_modes;
-	int param1 = 0;
-	int param2 = 0;
-	char **current_code_words;
-	int adress;
+	int src_reg, dest_reg;
+	int op_code = is_operation(operation) - 1;
+	char **params_arr = (char **)malloc(sizeof(char) * 2);
+
+
+	/* If operation has no params */
+	if((op_code + 1) == STOP || (op_code + 1) == RTS){
+		code_arr[IC_ind] = operation_to_code_word(0, 0, op_code, 0, 0);
+		return 1;
+	}
+
+	
 
 	addressing_modes = (int *)malloc(sizeof(int) * 2);
 	addressing_modes = params_to_addressing_modes(params);
 	
+	/* Addressing mode jmp with params */
 	if(addressing_modes[0] == -2 && addressing_modes[1] == JMP_PARAMS){
+		return operation_with_jmp_addressing_to_code_words(symbol_table,
+															code_arr,
+															operation,
+															params,
+															IC_ind);
+	}
+
+	params_arr = parse_params(params);
+
+	/* Operations with one parameter */
+	if(addressing_modes[0] == -2){
+		code_arr[IC_ind] = operation_to_code_word(0, 0, op_code, 0, addressing_modes[1]);
+		label_found = param_to_code_word(symbol_table, code_arr, params, IC_ind + 1);
+		return label_found;
+	}
+
+	/* Operations with two registers as parameters */
+	if(addressing_modes[0] == REG_DIRECT && addressing_modes[1] == REG_DIRECT){
+		code_arr[IC_ind] = operation_to_code_word(0, 0, op_code, addressing_modes[0], addressing_modes[1]);
+		src_reg = is_register(params_arr[0]);
+		dest_reg = is_register(params_arr[1]);
+		code_arr[IC_ind + 1] = registers_to_code_word(src_reg, dest_reg);
 		return 1;
 	}
 
-	return 0;
+	/* Operation with two parameters where at least one of them is not a register */
+	code_arr[IC_ind] = operation_to_code_word(0, 0, op_code, addressing_modes[0], addressing_modes[1]);
+	return two_params_to_code_words(symbol_table, code_arr, params, IC_ind + 1);
 	
+}
 
-}*/
+void print_code_arr(char **code_arr, int IC){
+
+	int i ;
+	for(i = 0; i < IC; i++)
+		printf("%s\n", code_arr[i]);
+
+}
 

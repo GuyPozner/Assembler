@@ -1,6 +1,10 @@
 #ifndef SYMBOL_TABLE_H
 #define SYMBOL_TABLE_H
 
+#ifndef MAX_LABEL
+#define MAX_LABEL 31
+#endif
+
 typedef struct symbol{
 
 	
@@ -16,7 +20,7 @@ typedef struct symbol{
 
 typedef struct symbolTable{
 
-	symbol head;
+	symbol *head;
 
 }symbolTable;
 
@@ -36,5 +40,7 @@ unsigned int get_symbol_adress(symbolTable *, char *);
 unsigned int is_symbol_operation(symbolTable *, char *);
 
 unsigned int is_symbol_external(symbolTable *, char *);
+
+void print_symbol_table(symbolTable *);
 
 #endif
