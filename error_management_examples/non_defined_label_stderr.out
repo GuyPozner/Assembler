@@ -1,0 +1,2 @@
+error_management_examples/non_defined_label.as:5: error: label is not defined.
+error_management_examples/non_defined_label.as: 1 error was found, cannot create output files.

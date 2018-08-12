@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #include "symbol_table.h"
 #include "utils.h"
@@ -48,12 +49,12 @@ int contains_legal_label(char *word){
 
 	int i;
 	int ilegal_char = FALSE;
-
+	
 	if(!contains_char(word, ':'))
 		return NO_LABEL;
 
 	for(i = 0; word[i] != ':'; i++)
-		if((word[i] < '0') || (word[i] > 'z'))
+		if(!(isalnum(word[i])))
 			ilegal_char = TRUE;
 	
 	if(ilegal_char)
@@ -77,7 +78,7 @@ int is_legal_label(char *word){
 
 
 	for(i = 0; word[i]; i++)
-		if((word[i] < '0') || (word[i] > 'z'))
+		if(!(isalnum(word[i])))
 			return FALSE;
 	
 	return TRUE;
@@ -253,7 +254,7 @@ char ** parse_line(char *line){
 		memmove(tmp_str, line, strlen(line) + 1);
 		
 		/* line starts with label */
-		if(contains_legal_label(tmp_str) == 1){
+		if(contains_legal_label(tmp_str) == LEGAL_LABEL){
 			
 			tmp = strtok(tmp_str, ":");
 			memmove(label, tmp, strlen(tmp) + 1);
@@ -290,7 +291,7 @@ char ** parse_line(char *line){
 		/* Line starts with operation or instruction */
 		} else {
 
-			if(contains_legal_label(tmp_str) == 0)
+			if(contains_legal_label(tmp_str) == NO_LABEL)
 				label[0] = '*';
 			else
 				label[0] = '#';
@@ -323,7 +324,7 @@ char ** parse_line(char *line){
 			}
 		}
 	}
-
+	
 	parsed_line[0] = label;
 	parsed_line[1] = operation_instruction;
 	parsed_line[2] = params;

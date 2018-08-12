@@ -145,7 +145,6 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 				
 			} else {
 				
-				printf("parsed_line[1]: %s, parsed_line[2]: %s\n", parsed_line[1], parsed_line[2]);
 				fprintf(stderr, "%s:%d: error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
 				error_count++;
 

@@ -14,9 +14,9 @@ int main(int argc, char *argv[]){
 		
 		/* Print error message */
 		if(error_count == 1)
-			printf("%s: 1 error was found, cannot create output files.\n", argv[i]);
+			fprintf(stderr, "%s: 1 error was found, cannot create output files.\n", argv[i]);
 		else if(error_count > 1)
-			printf("%s: %d errors were found, cannot create output files.\n", argv[i], error_count);
+			fprintf(stderr, "%s: %d errors were found, cannot create output files.\n", argv[i], error_count);
 	
 	}
 

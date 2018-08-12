@@ -1,0 +1,4 @@
+error_management_examples/double_label_def_input.as:4: error: label already exist.
+error_management_examples/double_label_def_input.as:21: error: label already exists.
+error_management_examples/double_label_def_input.as:2 errors were found first pass, couldn't proceed with second pass.
+error_management_examples/double_label_def_input.as: 2 errors were found, cannot create output files.

@@ -1,0 +1,5 @@
+error_management_examples/ilegal_data_arg_input.as:8: error: ilegal data arguments.
+error_management_examples/ilegal_data_arg_input.as:9: error: ilegal data arguments.
+error_management_examples/ilegal_data_arg_input.as:19: error: ilegal data arguments.
+error_management_examples/ilegal_data_arg_input.as:3 errors were found in first pass, couldn't proceed with second pass.
+error_management_examples/ilegal_data_arg_input.as: 3 errors were found, cannot create output files.

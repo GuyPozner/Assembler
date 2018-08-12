@@ -1,0 +1,2 @@
+error_management_examples/input.ast: error: unknown file type, check file extension.
+error_management_examples/input.ast: 1 error was found, cannot create output files.

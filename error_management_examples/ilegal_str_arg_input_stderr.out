@@ -1,0 +1,3 @@
+error_management_examples/ilegal_str_arg_input.as:20: error: ilegal string arguments.
+error_management_examples/ilegal_str_arg_input.as: an error was found in first pass, couldn't proceed with second pass.
+error_management_examples/ilegal_str_arg_input.as: 1 error was found, cannot create output files.

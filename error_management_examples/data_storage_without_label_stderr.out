@@ -1,0 +1,4 @@
+error_management_examples/data_storage_without_label.as:8: error: label name is not defined for data storage.
+error_management_examples/data_storage_without_label.as:20: error: label name is not defined for data storage.
+error_management_examples/data_storage_without_label.as:2 errors were found in first pass, couldn't proceed with second pass.
+error_management_examples/data_storage_without_label.as: 2 errors were found, cannot create output files.

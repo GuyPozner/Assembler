@@ -74,7 +74,7 @@ int second_pass(char *filepath){
 		return error_count;
 	
 	} else if(error_count > 1){
-		fprintf(stderr, "%s:%d errors were found first pass, couldn't proceed with second pass.\n", filepath, error_count);
+		fprintf(stderr, "%s:%d errors were found in first pass, couldn't proceed with second pass.\n", filepath, error_count);
 		return	error_count;
 	}
 

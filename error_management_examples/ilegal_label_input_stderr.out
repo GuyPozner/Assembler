@@ -1,0 +1,4 @@
+error_management_examples/ilegal_label_input.as:3: error: ilegal label definition.
+error_management_examples/ilegal_label_input.as:4: error: ilegal arguments to operation jsr.
+error_management_examples/ilegal_label_input.as:2 errors were found first pass, couldn't proceed with second pass.
+error_management_examples/ilegal_label_input.as: 2 errors were found, cannot create output files.
