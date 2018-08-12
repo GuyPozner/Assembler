@@ -68,6 +68,14 @@ int is_legal_label(char *word){
 
 	int i;
 
+	/* Check that it is not an operation,
+	 * instruction or a register */
+	if(is_operation(word) ||
+		is_instruction(word) ||
+		(is_register(word) != -1))
+		return FALSE;
+
+
 	for(i = 0; word[i]; i++)
 		if((word[i] <= '0') || (word[i] >= 'z'))
 			return FALSE;

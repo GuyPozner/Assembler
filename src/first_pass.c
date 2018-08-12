@@ -144,7 +144,7 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 				
 			} else {
 				
-				fprintf(stderr, "%s:%d error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
+				fprintf(stderr, "%s:%d: error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
 				error_count++;
 
 			}
