@@ -62,8 +62,8 @@ int contains_legal_label(char *word){
 	return LEGAL_LABEL;
 }
 
-/* Return FALSE if word contains
- * an ilegal char for label, TRUE otherwise */
+/* Return FALSE if word is
+ * an ilegal label, TRUE otherwise */
 int is_legal_label(char *word){
 
 	int i;
@@ -1459,7 +1459,6 @@ int write_ob_file(char *filepath, char **code_arr, char **data_arr, int IC, int 
 	for(i = 0; i < DC; i++)
 		fprintf(ob_file, "%04d\t%s\n", i + IC + MEM_ADRESS, data_arr[i]);
 		
-	
 	free(ob_filepath);
 	fclose(ob_file);
 
@@ -1501,7 +1500,6 @@ int write_entries_file(char *filepath, char **entries_arr, int entries_count){
 	for(i = 0; i < entries_count; i++)
 		fprintf(ent_file, "%s\n", entries_arr[i]);
 	
-
 	free(ent_filepath);
 	fclose(ent_file);
 	
@@ -1530,16 +1528,13 @@ int write_externals_file(char *filepath, char **externals_arr, int external_call
 		fprintf(stderr, "error: cannot write into %s\n", ext_filepath);
 		return BAD_FILE;
 	}
-	
 
 	/* print contexts into the file */
 	for(i = 0; i < external_calls_count; i++)
 		fprintf(ext_file, "%s\n", externals_arr[i]);
 		
-	
 	free(ext_filepath);
 	fclose(ext_file);
-	
 
 	return GOOD_FILE;
 }

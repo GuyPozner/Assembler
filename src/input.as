@@ -2,7 +2,7 @@
 
 .entry LENGTH
 .extern W
-MAIN:	mov	r3,bne
+MAIN:	mov	r3,LENGTH
 LOOP:	jmp	L1(#-1,r6)
 		prn #-5
 		bne W(r4,r7)
