@@ -35,7 +35,8 @@ symbol * new_symbol(char *name, unsigned int adress,
 
 }
 
-/* Adds a symbol to table, returns  */
+/* Adds a symbol to table, returns 1 if symbol
+ * was added, 0 otherwise. */
 int add_symbol(symbolTable *symbol_table, char *name, unsigned int adress,
 				unsigned int is_external, unsigned int is_operation){
 
@@ -130,7 +131,7 @@ unsigned int is_symbol_external(symbolTable *symbol_table, char *name){
 	return -1;
 }
 
-void update_data_adresses(symbolTable *symbol_table, int IC){
+void update_adresses(symbolTable *symbol_table, int IC){
 
 	symbol *tmp = symbol_table->head;
 	while(tmp != NULL){

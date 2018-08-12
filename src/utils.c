@@ -1373,7 +1373,7 @@ int operation_to_code_words(symbolTable *symbol_table, char **code_arr,char *ope
 
 
 /* Writes a string instruction into the data_arr,
- * Returns FALSE if symbo is external, TRUE otherwise */
+ * Returns FALSE if symbol is external, TRUE otherwise */
 int string_to_code_words(symbolTable *symbol_table,
  char **data_arr, char *label, char *str, int IC){
 

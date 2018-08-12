@@ -11,8 +11,13 @@ int main(int argc, char *argv[]){
 
 	for(i = 1; i < argc; i++){
 		error_count = second_pass(argv[i]);
-		if(error_count)
-			printf("%s: errors were found in second pass, cannot create output files.\n", argv[i]);
+		
+		/* Print error messages */
+		if(error_count == 1)
+			printf("%s: 1 error was found, cannot create output files.\n", argv[i]);
+		else if(error_count > 1)
+			printf("%s: %d errors were found, cannot create output files.\n", argv[i], error_count);
+	
 	}
 
 

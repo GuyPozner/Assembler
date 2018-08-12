@@ -169,7 +169,7 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 		exit(0);
 	}
 
-	update_data_adresses(symbol_table, IC);
+	update_adresses(symbol_table, IC);
 	ret_arr[0] = error_count;
 	ret_arr[1] = IC;
 	ret_arr[2] = DC;
