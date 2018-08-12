@@ -1,0 +1,10 @@
+error_management_examples/multiple_first_pass_errors.as:3: error: ilegal argument for .entry.
+error_management_examples/multiple_first_pass_errors.as:4: error: ilegal argument for .extern.
+inpus.as:5: error: unknown operation.
+error_management_examples/multiple_first_pass_errors.as:6: error: ilegal arguments to operation stop.
+error_management_examples/multiple_first_pass_errors.as:7: error: ilegal arguments to operation prn.
+inpus.as:11: error: unknown operation.
+inpus.as:14: error: unknown operation.
+error_management_examples/multiple_first_pass_errors.as:18: error: ilegal data arguments.
+error_management_examples/multiple_first_pass_errors.as:8 errors were found in first pass, couldn't proceed with second pass.
+error_management_examples/multiple_first_pass_errors.as: 8 errors were found, cannot create output files.

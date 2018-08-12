@@ -39,15 +39,19 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 
 	while(fgets(line, sizeof(char) * LINE_BUF_LEN, source)){
 		
+		line_ind++;
 		if(strlen(line) > MAX_LINE){
 			error_count++;
 			fprintf(stderr, "%s:%d: error: line is longer than %d.\n", filepath, line_ind, MAX_LINE);
 			continue;
 		}
 
-		line_ind++;
+		if((line[0] == '\n') && (strlen(line) == 1))
+			continue;
+		
 		has_symbol_def = 0;
 		parsed_line = parse_line(line);
+
 
 		/* If line is empty or a comment, go to next line */
 		if(*parsed_line[0] == '*' &&
@@ -108,13 +112,29 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 		
 		if(is_data_definition_instruction(parsed_line[1])){
 			if(is_instruction(parsed_line[1]) == EXTERN){
-				if(is_legal_label(parsed_line[2]))
+				if(is_legal_label(parsed_line[2]) == LEGAL_LABEL){
+					
 					if(add_symbol(symbol_table, parsed_line[2], DC, 1, 0) == 0){
 						error_count++;
-						printf("parsed_line[2]: %s\n", parsed_line[2]);
 						fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
 					}
+
+				} else {
+					
+					/* Ilegal label */
+					error_count++;
+					fprintf(stderr, "%s:%d: error: ilegal argument for %s.\n", filepath, line_ind, parsed_line[1]);
+				}
 			}
+			
+			/* Check for errors in .entry arguments */
+			if(is_instruction(parsed_line[1]) == ENTRY &&
+			 is_legal_label(parsed_line[2]) != LEGAL_LABEL){
+				/* Ilegal label */
+				error_count++;
+				fprintf(stderr, "%s:%d: error: ilegal argument for %s.\n", filepath, line_ind, parsed_line[1]);	
+			}
+
 			free_parsed_line(parsed_line);
 			continue;
 		}

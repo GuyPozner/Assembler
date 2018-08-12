@@ -216,6 +216,93 @@ int is_no_operand_operation(char *operation){
 }
 
 
+/* Returns TRUE if cnst is a legal constant,
+ * FALSE otherwise */
+int is_legal_constant(char *cnst){
+
+	int i;
+
+	/* cnst is empty */
+	if(*(cnst + 1) == 0)
+		return FALSE;
+
+	if(cnst[0] != '#')
+		return FALSE;
+
+	if(cnst[1] == '-' || cnst [1] == '+')
+		i = 2;
+	else
+		i = 1;
+
+
+	for(;cnst[i];i++)
+		if(cnst[i] <= '0' || cnst[i] >= '9')
+			return FALSE;
+
+	return TRUE;
+}
+
+
+/* Returns TRUE if param is a legal param,
+ * FALSE otherwise */
+int is_legal_param(char *param){
+	
+	if(is_legal_label(param) ||
+		is_legal_constant(param) ||
+		(is_register(param) != -1))
+		return TRUE;
+	
+	return FALSE;
+}
+
+
+/* Parse parametes into an array of character arrays
+ * with two positions, one for the source paramters
+ * and one for the destination parameter, sholud
+ * keep track of its output since it allocates memory */
+char **parse_params(char *params){
+
+	
+	char **params_arr;
+	char *tmp_params;
+	char *tmp;
+
+	params_arr = (char **)malloc(sizeof(char *) * 2);
+	tmp_params = (char *)malloc(sizeof(char) * (strlen(params) + 1));
+	
+	params_arr[0] = (char *)malloc(sizeof(char) * (strlen(params) + 1));
+	params_arr[1] = (char *)malloc(sizeof(char) * (strlen(params) + 1));
+
+	/* Check memory allocation */
+	if(params_arr == NULL ||
+		tmp_params == NULL ||
+		params_arr[0] == NULL ||
+		params_arr[1] == NULL){
+		
+		fprintf(stderr, "fatal error: program could not allocate memory.\n");
+		exit(0);
+	}
+
+	/* Use memmove in order to avoid 
+	 * source and destination overlap */
+	memmove(tmp_params, params, strlen(params) + 1);
+	tmp = strtok(tmp_params, " ,\t");
+	memmove(params_arr[0], tmp, strlen(tmp) + 1);
+	if((tmp = strtok(NULL, " ,\t")) != NULL){
+		memmove(params_arr[1], tmp, strlen(tmp) + 1);
+	}
+	else {
+
+		memmove(params_arr[1], params_arr[0], strlen(params_arr[0]) + 1);
+		memmove(params_arr[0], "0", 2);
+		
+	}
+	
+	free(tmp_params);
+	return params_arr;
+}
+
+
 /* Parses the line into an array where the first index
  * holds the label, the second holds the operation/instruction
  * the last contains the parameters. */
@@ -297,28 +384,31 @@ char ** parse_line(char *line){
 				label[0] = '#';
 				
 			
-			/* Line has more than one word */
+			/* line is not empty */
 			if(((tmp = strtok(tmp_str, " \t\n")) != NULL) &&
 			 (strlen(tmp) <= MAX_OP_INST_LEN)){
 				
 				memmove(tmp_str, tmp, strlen(tmp) + 1);
 				if(is_operation(tmp_str) || is_instruction(tmp_str))
+					
 					memmove(operation_instruction, tmp_str, strlen(tmp_str) + 1);
+				
 				else 
 					operation_instruction[0] = '#';
 				
 				
 				if(((tmp = strtok(NULL, "\n")) != NULL) &&
 					((strlen(tmp)) <= MAX_PARAMS_LEN))
-
+					
 					memmove(params, tmp, strlen(tmp) + 1);
+				
 				else
 					params[0] = '*';
 				
 
 			} else {
 				
-				operation_instruction[0] = '*';
+				operation_instruction[0] = '#';
 				params[0] = '*';
 
 			}
@@ -394,6 +484,7 @@ int is_one_operand_operation(char *operation){
 
 
 
+
 /* Return TRUE if operation can take jump parameters, 
  * FALSE otherwise */
 int legal_operation_jmp_adressing_with_params(char *operation){
@@ -460,44 +551,7 @@ char * get_params_from_jmp_params(char *params){
 }
 
 
-/* Returns TRUE if cnst is a legal constant,
- * FALSE otherwise */
-int is_legal_constant(char *cnst){
 
-	int i;
-
-	/* cnst is empty */
-	if(*(cnst + 1) == 0)
-		return FALSE;
-
-	if(cnst[0] != '#')
-		return FALSE;
-
-	if(cnst[1] == '-' || cnst [1] == '+')
-		i = 2;
-	else
-		i = 1;
-
-
-	for(;cnst[i];i++)
-		if(cnst[i] <= '0' || cnst[i] >= '9')
-			return FALSE;
-
-	return TRUE;
-}
-
-
-/* Returns TRUE if param is a legal param,
- * FALSE otherwise */
-int is_legal_param(char *param){
-	
-	if(is_legal_label(param) ||
-		is_legal_constant(param) ||
-		(is_register(param) != -1))
-		return TRUE;
-	
-	return FALSE;
-}
 
 /* Returns TRUE if params are legal jump params,
  * FALSE otherwise */
@@ -1100,51 +1154,7 @@ char * constant_to_code_word(int cnst){
 	return memory_word;
 }
 
-/* Parse parametes into an array of character arrays
- * with two positions, one for the source paramters
- * and one for the destination parameter, sholud
- * keep track of its output since it allocates memory */
-char **parse_params(char *params){
 
-	
-	char **params_arr;
-	char *tmp_params;
-	char *tmp;
-
-	params_arr = (char **)malloc(sizeof(char *) * 2);
-	tmp_params = (char *)malloc(sizeof(char) * (strlen(params) + 1));
-	
-	params_arr[0] = (char *)malloc(sizeof(char) * (strlen(params) + 1));
-	params_arr[1] = (char *)malloc(sizeof(char) * (strlen(params) + 1));
-
-	/* Check memory allocation */
-	if(params_arr == NULL ||
-		tmp_params == NULL ||
-		params_arr[0] == NULL ||
-		params_arr[1] == NULL){
-		
-		fprintf(stderr, "fatal error: program could not allocate memory.\n");
-		exit(0);
-	}
-
-	/* Use memove in order to avoid 
-	 * source and destination overlap */
-	memmove(tmp_params, params, strlen(params) + 1);
-	tmp = strtok(tmp_params, " ,\t");
-	memmove(params_arr[0], tmp, strlen(tmp) + 1);
-	if((tmp = strtok(NULL, " ,\t")) != NULL){
-		memmove(params_arr[1], tmp, strlen(tmp) + 1);
-	}
-	else {
-
-		memmove(params_arr[1], params_arr[0], strlen(params_arr[0]) + 1);
-		memmove(params_arr[0], "0", 2);
-		
-	}
-	
-	free(tmp_params);
-	return params_arr;
-}
 
 
 /* Return an integer which is representes by
