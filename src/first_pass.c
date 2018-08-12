@@ -29,8 +29,21 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 
 	
 	line_ind = 0;
-	line = (char *)malloc(sizeof(char) * MAX_LINE);
-	while(fgets(line, sizeof(char) * MAX_LINE, source)){
+	line = (char *)malloc(sizeof(char) * LINE_BUF_LEN);
+
+	/* Check memory allocation */
+	if(line == NULL){
+		fprintf(stderr, "fatal error: program could not allocate memory.\n");
+		exit(0);
+	}
+
+	while(fgets(line, sizeof(char) * LINE_BUF_LEN, source)){
+		
+		if(strlen(line) > MAX_LINE){
+			error_count++;
+			fprintf(stderr, "%s:%d: error: line is longer than %d.\n", filepath, line_ind, MAX_LINE);
+			continue;
+		}
 
 		line_ind++;
 		has_symbol_def = 0;
@@ -39,13 +52,16 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 		/* If line is empty or a comment, go to next line */
 		if(*parsed_line[0] == '*' &&
 			*parsed_line[1] == '*' &&
-			*parsed_line[2] == '*')
+			*parsed_line[2] == '*'){
+			free_parsed_line(parsed_line);
 			continue;
+		}
 
 		/* Check if line contains ilegal label*/
 		if(*parsed_line[0] == '#'){
 			error_count++;
 			fprintf(stderr, "%s:%d: error: ilegal label definition.\n", filepath, line_ind);
+			free_parsed_line(parsed_line);
 			continue;
 		}
 
@@ -61,51 +77,60 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 					fprintf(stderr, "%s:%d: error: label already exists.\n", filepath, line_ind);
 					error_count++;
 				}
-			}
-			
-			/* Update DC according to data */
-			if(is_instruction(parsed_line[1]) == DATA){
-				if(compute_memory_for_data(parsed_line[2]))
-					DC += compute_memory_for_data(parsed_line[2]);
-				else {
-					error_count++;
-					fprintf(stderr, "%s:%d: error: ilegal data arguments.\n", filepath, line_ind);
+				/* Update DC according to data */
+				if(is_instruction(parsed_line[1]) == DATA){
+					if(compute_memory_for_data(parsed_line[2]))
+						DC += compute_memory_for_data(parsed_line[2]);
+					else {
+						error_count++;
+						fprintf(stderr, "%s:%d: error: ilegal data arguments.\n", filepath, line_ind);
+					}
+				/* Update DC according to string */
+				} else {
+
+					if(compute_memory_for_string(parsed_line[2]))
+						DC += compute_memory_for_string(parsed_line[2]);
+					else {
+
+						error_count++;
+						fprintf(stderr, "%s:%d: error: ilegal string arguments.\n", filepath, line_ind);
+					}
 				}
-			/* Update DC according to string */
+				
 			} else {
-
-				if(compute_memory_for_string(parsed_line[2]))
-					DC += compute_memory_for_string(parsed_line[2]);
-				else {
-
-					error_count++;
-					fprintf(stderr, "%s:%d: error: ilegal string arguments.\n", filepath, line_ind);
-				}
+				error_count++;
+				fprintf(stderr, "%s:%d: error: label name is not defined for data storage.\n", filepath, line_ind);
 			}
+			free_parsed_line(parsed_line);
 			continue;
+			
 		}
 		
 		if(is_data_definition_instruction(parsed_line[1])){
 			if(is_instruction(parsed_line[1]) == EXTERN){
 				if(is_legal_label(parsed_line[2]))
-					if(!add_symbol(symbol_table, parsed_line[2], DC, 1, 0)){
+					if(add_symbol(symbol_table, parsed_line[2], DC, 1, 0) == 0){
 						error_count++;
 						fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
 					}
 			}
+			free_parsed_line(parsed_line);
 			continue;
 		}
 
 
-		if(is_operation(parsed_line[1])){
-			op_code = is_operation(parsed_line[1]);
+		if((op_code = is_operation(parsed_line[1]))){
+
 			if(has_symbol_def){
+
 				if(add_symbol(symbol_table, parsed_line[0], IC, 0, 1) == 0){
+					
 					error_count++;
 					fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
 				}
 			}
 
+			
 			/* Compute the number of memory words */
 			if((op_code == STOP ||
 				op_code == RTS) &&
@@ -116,33 +141,41 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 			} else if (is_legal_addressing_modes(parsed_line[1], parsed_line[2])){
 				
 				IC += compute_memory_for_code(parsed_line[2]);
-
+				
 			} else {
 				
-				printf("%s:%d error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
+				fprintf(stderr, "%s:%d error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
 				error_count++;
 
 			}
+		free_parsed_line(parsed_line);
+		continue;
 
 
 		} else {
 
+			error_count++;
 			fprintf(stderr, "%s:%d: error: unknown operation.\n", "inpus.as", line_ind);
-
+			free_parsed_line(parsed_line);
 		}
 		
-		
 	}
-
 	
 
 	ret_arr = (int *)malloc(sizeof(int) * 3);
+	/* Check memory allocation */
+	if(ret_arr == NULL){
+		fprintf(stderr, "fatal error: program could not allocate memory.\n");
+		exit(0);
+	}
 
+	update_data_adresses(symbol_table, IC);
 	ret_arr[0] = error_count;
 	ret_arr[1] = IC;
 	ret_arr[2] = DC;
 
 	fclose(source);
+	free(line);
 
 	return ret_arr;
 }

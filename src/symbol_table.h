@@ -5,6 +5,10 @@
 #define MAX_LABEL 31
 #endif
 
+#ifndef MEM_ADRESS
+#define MEM_ADRESS 100
+#endif
+
 typedef struct symbol{
 
 	
@@ -28,12 +32,11 @@ typedef struct symbolTable{
 /* Constructs a new symbol*/
 symbol * new_symbol(char *, unsigned int, unsigned int, unsigned int);
 
-
 int add_symbol(symbolTable *, char *, unsigned int, unsigned int, unsigned int);
 
 symbolTable * new_symbol_table();
 
-void clear_symbol_table(symbolTable *);
+void free_symbol_table(symbolTable *);
 
 unsigned int get_symbol_adress(symbolTable *, char *);
 
@@ -41,6 +44,9 @@ unsigned int is_symbol_operation(symbolTable *, char *);
 
 unsigned int is_symbol_external(symbolTable *, char *);
 
+void update_data_adresses(symbolTable *, int);
+
 void print_symbol_table(symbolTable *);
+
 
 #endif

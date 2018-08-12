@@ -1,15 +1,18 @@
-;Note
+;file ps.as
 
-MAIN:	add	r3,LENGTH
+.entry LENGTH
+.extern W
+MAIN:	mov	r3,LENGTH
 LOOP:	jmp	L1(#-1,r6)
 		prn #-5
-		bne	LOOP(r4,r7)
+		bne W(r4,r7)
 		sub r1,r4
-		bne END
+		bne L3
 L1:		inc K
-		bne LOOP(K,STR)
+.entry LOOP
+		bne LOOP(K,W)
 END:	stop
 STR:	.string "abcdef"
-STR2:	.string "ab"
-LENGTH: .data 6,-9,15,14,55,  -123
+LENGTH: .data 6,-9,15
 K:		.data 22
+.extern L3
