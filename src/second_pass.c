@@ -24,22 +24,24 @@ int second_pass(char *filepath){
 	
 	int i;
 	symbolTable *symbol_table = new_symbol_table();
-	int IC, IC_ind;
-	int DC;
+	int IC, IC_ind; /* length of the code section */
+	int DC; /* length of the data section */
 	int line_ind = 0;
 	int error_count = 0;
-	int entries_count = 0;
-	int *external_calls_count;
+	int entries_count = 0; /* count of entry instructions */
+	int *external_calls_count; /* count of calls to external variables*/
 	char *line;
-	char **parsed_line;
-	FILE *source;
-	int *first_pass_output_arr;
-	char **code_arr;
-	char **data_arr;
-	char **externals_arr;
-	char **entries_arr;
-	int label_found;
-	const char *file_extension;
+	char **parsed_line; /* line parsed into it code elements */
+	FILE *source; /* the input file */
+	int *first_pass_output_arr; /* the IC, DC and error count from the first pass */
+	char **code_arr; /* The array of the machine code for the code section */
+	char **data_arr; /* The array of the machine code for the data section */
+	char **externals_arr; /* The array of lines to be written in the .ext file */
+	char **entries_arr; /* The array of lines to be written in the .ent file */
+	int label_found; /* if label isn't fount in second pass,
+					  * it is not defined in code, but called for by an operation,
+					  * will produce an error */
+	const char *file_extension; /* the extension of the input file, to verify it is as */
 	
 	
 	/* Check that file has as ending */
@@ -107,7 +109,6 @@ int second_pass(char *filepath){
 		line_ind++;
 		parsed_line = parse_line(line);
 
-
 		/* If line is empty or a comment, go to next line */
 		if(*parsed_line[0] == '*' &&
 			*parsed_line[1] == '*' &&
@@ -120,9 +121,10 @@ int second_pass(char *filepath){
 
 
 		if(is_operation(parsed_line[1])){
+			
 			label_found = operation_to_code_words(symbol_table, code_arr, parsed_line[1], parsed_line[2], IC_ind, 
 				externals_arr, external_calls_count);
-
+			
 			IC_ind += compute_memory_for_code(parsed_line[2]);
 			
 			if(label_found == 0){
@@ -168,7 +170,6 @@ int second_pass(char *filepath){
 		
 	}
 
-
 	/* Write the arrays into files and free them from memory */
 	if(error_count == 0){
 	
@@ -181,7 +182,7 @@ int second_pass(char *filepath){
 	/* Free all the output arrays */
 	for(i = 0; i < IC; i++)
 		free(code_arr[i]);
-		
+	
 	for(i = 0; i < DC; i++)
 		free(data_arr[i]);
 
@@ -205,5 +206,5 @@ int second_pass(char *filepath){
 	
 	fclose(source);
 	
-	return 0;
+	return error_count;
 }

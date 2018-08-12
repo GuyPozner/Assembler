@@ -9,7 +9,7 @@ int is_legal_symbol_name(char *word){
 	int i;
 
 	for(i = 0; word[i]; i++)
-		if((word[i] <= '0') || (word[i] >= 'z'))
+		if((word[i] < '0') || (word[i] > 'z'))
 			return 0;
 	
 	return 1;
@@ -53,7 +53,7 @@ int add_symbol(symbolTable *symbol_table, char *name, unsigned int adress,
 		symbol_table->head = new;
 		return 1;
 	}
-
+	
 	if(strcmp(last->name, name) == 0){
 			return 0;
 	}

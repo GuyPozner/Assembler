@@ -111,6 +111,7 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 				if(is_legal_label(parsed_line[2]))
 					if(add_symbol(symbol_table, parsed_line[2], DC, 1, 0) == 0){
 						error_count++;
+						printf("parsed_line[2]: %s\n", parsed_line[2]);
 						fprintf(stderr, "%s:%d: error: label already exist.\n", filepath, line_ind);
 					}
 			}
@@ -134,7 +135,7 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 			/* Compute the number of memory words */
 			if((op_code == STOP ||
 				op_code == RTS) &&
-				(*(parsed_line[2]) == '#')){
+				(*(parsed_line[2]) == '*')){
 				
 				IC++;
 
@@ -144,6 +145,7 @@ int * first_pass(char *filepath, symbolTable *symbol_table){
 				
 			} else {
 				
+				printf("parsed_line[1]: %s, parsed_line[2]: %s\n", parsed_line[1], parsed_line[2]);
 				fprintf(stderr, "%s:%d: error: ilegal arguments to operation %s.\n", filepath, line_ind, parsed_line[1]);
 				error_count++;
 

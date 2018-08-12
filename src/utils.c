@@ -53,7 +53,7 @@ int contains_legal_label(char *word){
 		return NO_LABEL;
 
 	for(i = 0; word[i] != ':'; i++)
-		if((word[i] <= '0') || (word[i] >= 'z'))
+		if((word[i] < '0') || (word[i] > 'z'))
 			ilegal_char = TRUE;
 	
 	if(ilegal_char)
@@ -77,7 +77,7 @@ int is_legal_label(char *word){
 
 
 	for(i = 0; word[i]; i++)
-		if((word[i] <= '0') || (word[i] >= 'z'))
+		if((word[i] < '0') || (word[i] > 'z'))
 			return FALSE;
 	
 	return TRUE;
@@ -200,6 +200,21 @@ int is_register(char *word){
 	return -1;
 }
 
+
+/* Return TRUE if operation takes no arguments, 
+ * FALSE otherwise */
+int is_no_operand_operation(char *operation){
+	
+	int op_num = is_operation(operation);
+
+	if(op_num == RTS ||
+		op_num == STOP)
+		return TRUE;
+	
+	return FALSE;
+}
+
+
 /* Parses the line into an array where the first index
  * holds the label, the second holds the operation/instruction
  * the last contains the parameters. */
@@ -227,6 +242,7 @@ char ** parse_line(char *line){
 		exit(0);
 	}
 
+	/* Line is commented out */
 	if(line[0] == ';'){
 		label[0] = '*';
 		operation_instruction[0] = '*';
@@ -242,6 +258,7 @@ char ** parse_line(char *line){
 			tmp = strtok(tmp_str, ":");
 			memmove(label, tmp, strlen(tmp) + 1);
 			
+
 			if((strlen(label) <= MAX_LABEL) &&
 				(tmp = strtok(NULL, " \t\n")) != NULL){
 				
@@ -257,8 +274,12 @@ char ** parse_line(char *line){
 					(strlen(tmp) <= (MAX_PARAMS_LEN)))
 						
 						memmove(params, tmp, strlen(tmp) + 1);		
-				else 
+				else {
+					if(is_no_operand_operation(tmp_str))
+						params[0] = '*';
+					else
 						params[0] = '#';
+				}
 				
 			} else {
 				operation_instruction[0] = '#';
@@ -275,6 +296,7 @@ char ** parse_line(char *line){
 				label[0] = '#';
 				
 			
+			/* Line has more than one word */
 			if(((tmp = strtok(tmp_str, " \t\n")) != NULL) &&
 			 (strlen(tmp) <= MAX_OP_INST_LEN)){
 				
@@ -369,18 +391,7 @@ int is_one_operand_operation(char *operation){
 	return FALSE;
 }
 
-/* Return TRUE if operation takes no arguments, 
- * FALSE otherwise */
-int is_no_operand_operation(char *operation){
-	
-	int op_num = is_operation(operation);
 
-	if(op_num == RTS ||
-		op_num == STOP)
-		return TRUE;
-	
-	return FALSE;
-}
 
 /* Return TRUE if operation can take jump parameters, 
  * FALSE otherwise */
@@ -657,7 +668,7 @@ int is_legal_addressing_modes(char *operation, char *params){
 		if((addressing_modes[0] == IMMEDIATE ||
 			addressing_modes[0] == DIRECT ||
 			addressing_modes[0] == REG_DIRECT) &&
-			(addressing_modes[0] == IMMEDIATE ||
+			(addressing_modes[1] == IMMEDIATE ||
 			 addressing_modes[1] == DIRECT ||
 			 addressing_modes[1] == REG_DIRECT)){
 			
@@ -667,7 +678,7 @@ int is_legal_addressing_modes(char *operation, char *params){
 
 	if(op_num == NOT || op_num == CLR || op_num == INC ||
 	 op_num == DEC || op_num == RED)
-		if((addressing_modes[0] == -2) &&
+		if((addressing_modes[0] == NO_PARAM) &&
 			(addressing_modes[1] == DIRECT ||
 			addressing_modes[1] == REG_DIRECT)){
 			
@@ -685,7 +696,7 @@ int is_legal_addressing_modes(char *operation, char *params){
 	}
 
 	if(op_num == JMP || op_num == BNE || op_num == JSR)
-		if((addressing_modes[0] == -2) &&
+		if((addressing_modes[0] == NO_PARAM) &&
 			(addressing_modes[1] == DIRECT ||
 			 addressing_modes[1] == REG_DIRECT ||
 			 addressing_modes[1] == JMP_PARAMS)){
@@ -695,7 +706,7 @@ int is_legal_addressing_modes(char *operation, char *params){
 	}
 
 	if(op_num == PRN)
-		if((addressing_modes[0] == -2) && 
+		if((addressing_modes[0] == NO_PARAM) && 
 			(addressing_modes[1] == DIRECT ||
 			 addressing_modes[1] == REG_DIRECT ||
 			 addressing_modes[1] == IMMEDIATE)){
@@ -808,6 +819,7 @@ int compute_memory_for_code(char *params){
 	free(addressing_modes);
 	return memory_size;
 }
+
 
 
 /* Returns an integer pointer for the array
@@ -1004,7 +1016,7 @@ char * label_to_code_word(symbolTable *symbol_table, char *label, int IC,
 	memory_word[0] = '\0';
 
 	if((adress = get_symbol_adress(symbol_table, label)) == -1){
-		strcpy(memory_word, (base2_str = int_to_wierd_base2(0, 14)));
+		strcat(memory_word, (base2_str = int_to_wierd_base2(0, 14)));
 		free(base2_str);
 		return memory_word;
 	}
@@ -1231,7 +1243,7 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 	char *label = get_label_from_jmp_params(params);
 	char *jmp_params = get_params_from_jmp_params(params);
 	char **jmp_params_arr = parse_params(jmp_params);
-
+	int label_found;
 
 	param1 = jmp_addressing_modes[0];
 	param2 = jmp_addressing_modes[1];
@@ -1239,18 +1251,8 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 	code_arr[IC_ind] = operation_to_code_word(param1, param2, op_code, 0, JMP_PARAMS);
 	code_arr[IC_ind + 1] = label_to_code_word(symbol_table, label, IC_ind + 1, externals_arr, external_calls_count);
 	
-
-	/* If label wasn't found in symbol table */
-	if((code_arr[IC_ind + 1]) == NULL){
-		free(jmp_params_arr[0]);
-		free(jmp_params_arr[1]);
-		free(jmp_params_arr);
-		free(jmp_addressing_modes);
-		free(jmp_params);
-		free(label);
-		return FALSE;
-	}
-
+	/* The return value, detect labels which aren't defined */
+	label_found = (strcmp(code_arr[IC_ind + 1], EMPTY_WORD) != 0);
 
 	if(param1 == REG_DIRECT && param2 == REG_DIRECT){
 
@@ -1265,7 +1267,7 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 		free(jmp_params);
 		free(label);
 
-		return TRUE;
+		return label_found;
 
 	} else {
 		if(!(two_params_to_code_words(symbol_table, code_arr, jmp_params, IC_ind + 2, externals_arr, external_calls_count))){
@@ -1277,7 +1279,7 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 			free(jmp_params);
 			free(label);
 
-			return TRUE;
+			return label_found;
 		}
 		else{
 			
@@ -1287,18 +1289,9 @@ int operation_with_jmp_addressing_to_code_words(symbolTable *symbol_table, char 
 			free(jmp_addressing_modes);
 			free(jmp_params);
 			free(label);
-			return TRUE;
+			return label_found;
 		}
 	}
-	
-	free(jmp_params_arr[0]);
-	free(jmp_params_arr[1]);
-	free(jmp_params_arr);
-	free(jmp_addressing_modes);
-	free(jmp_params);
-	free(label);
-	return TRUE;
-
 }
 
 
